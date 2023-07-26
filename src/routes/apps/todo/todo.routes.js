@@ -5,6 +5,7 @@ import {
   deleteTodo,
   getAllTodos,
   getTodoById,
+  sortTodos,
   toggleTodoDoneStatus,
   updateTodo,
 } from "../../../controllers/apps/todo/todo.controllers.js";
@@ -33,6 +34,8 @@ router
     updateTodo
   )
   .delete(deleteTodo);
+
+router.route('/:query').get(sortTodos);
 
 router
   .route("/toggle/status/:todoId")

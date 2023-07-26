@@ -10,19 +10,19 @@ const getAllTodos = asyncHandler(async (req, res) => {
       $match:
         query?.length > 0
           ? // return docs if either of the following keys match
-            {
-              title: {
-                $regex: query.trim(),
-                $options: "i",
-              },
-            }
+          {
+            title: {
+              $regex: query.trim(),
+              $options: "i",
+            },
+          }
           : {},
     },
     {
       $match: complete
         ? {
-            isComplete: JSON.parse(complete), // parse string to boolean. "true" -> true
-          }
+          isComplete: JSON.parse(complete), // parse string to boolean. "true" -> true
+        }
         : {},
     },
   ]);
@@ -31,6 +31,35 @@ const getAllTodos = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, todos, "Todos fetched successfully"));
 });
+
+//adding sorting of todos
+const sortTodos = asyncHandler(async (req, res) => {
+  const { query } = req.params;
+  const matchCriteria = {};
+
+  const aggregationPipeline = [
+    {
+      $match: matchCriteria,
+    },
+  ];
+
+  if (query) {
+    // If sort is 'asc', sort by ascending order of 'createdAt' field; otherwise, sort by descending order
+    const sortOrder = query === 'desc' ? -1 : 1;
+    aggregationPipeline.push({
+      $sort: {
+        createdAt: sortOrder,
+      },
+    });
+  }
+
+  // Perform the aggregation
+  const todos = await Todo.aggregate(aggregationPipeline);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, todos, "Todos fetched successfully"));
+})
 
 const getTodoById = asyncHandler(async (req, res) => {
   const { todoId } = req.params;
@@ -121,4 +150,5 @@ export {
   updateTodo,
   deleteTodo,
   toggleTodoDoneStatus,
+  sortTodos
 };
